@@ -1,5 +1,7 @@
 // Reference: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 
+use std::fs::{self, File};
+
 // 2.1 - Memory
 // Most Chip-8 programs start at location 0x200 (512), but some begin at
 // 0x600 (1536). Programs beginning at 0x600 are intended for the ETI 660
@@ -44,7 +46,15 @@ impl Chip8 {
     }
 
     pub fn load_rom(&mut self, path: &str) {
-        todo!()
+        let bytes = fs::read(path).expect("Could not open file.");
+
+        // TODO: Take a CLI flag for the start address to load into memory, for
+        //       now we just use the more common 0x200 start address.
+        for (index, byte) in bytes.iter().enumerate() {
+            self.ram[NORMAL_START_INDEX + index] = *byte;
+        }
+
+        eprintln!("bytes loaded: {}", bytes.len());
     }
 
     pub fn run(&self) {

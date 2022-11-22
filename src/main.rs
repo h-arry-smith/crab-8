@@ -15,5 +15,6 @@ fn main() {
     let path = args.get(1).expect("A file path must be provided.");
 
     cpu.load_rom(path);
+
     cpu.run();
 }
