@@ -2,6 +2,9 @@ use std::{env, process};
 
 use flake_8::chip8::Chip8;
 
+// TODO: Replace CLI argument parsing with a better library before releasing as
+//       any public project.
+
 fn main() {
     let mut cpu = Chip8::new();
 
@@ -17,4 +20,13 @@ fn main() {
     cpu.load_rom(path);
 
     cpu.run();
+
+    match args.get(2) {
+        Some(flag) => {
+            if flag == "-d" || flag == "--dump" {
+                cpu.dump_to_stdout();
+            }
+        }
+        None => {}
+    }
 }

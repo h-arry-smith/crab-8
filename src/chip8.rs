@@ -1,13 +1,13 @@
 // Reference: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 
-use std::fs::{self, File};
+use std::fs::{self};
 
 // 2.1 - Memory
 // Most Chip-8 programs start at location 0x200 (512), but some begin at
 // 0x600 (1536). Programs beginning at 0x600 are intended for the ETI 660
 // computer.
 const NORMAL_START_INDEX: usize = 512;
-const ETI_660_START_INDEX: usize = 1526;
+// const ETI_660_START_INDEX: usize = 1526;
 
 pub struct Chip8 {
     // 2.1 - Memory
@@ -108,6 +108,26 @@ impl Chip8 {
     fn instruction(&self) -> u16 {
         ((*self.high_byte() as u16) << 8) | *self.low_byte() as u16
     }
+
+    pub fn dump_to_stdout(&self) {
+        println!("=== MEMORY ===");
+        for line in self.ram.chunks(64) {
+            for instruction in line.chunks(2) {
+                print!("{:02X}{:02X} ", instruction[0], instruction[1]);
+            }
+            print!("\n");
+        }
+
+        println!();
+        println!("=== REGISTERS ===");
+        self.registers.dump_to_stdout();
+
+        println!();
+        println!("=== CPU STATE ===");
+        println!("pc: {:04X}", self.pc);
+        println!("sp: {:04X}", self.sp);
+        println!("stack: {:?}", self.stack);
+    }
 }
 
 fn high(byte: &u8) -> u8 {
@@ -162,5 +182,26 @@ impl Registers {
             v_f: 0,
             i: 0,
         }
+    }
+
+    pub fn dump_to_stdout(&self) {
+        print!("v_0: {:02X} ", self.v_0);
+        print!("v_1: {:02X} ", self.v_1);
+        print!("v_2: {:02X} ", self.v_2);
+        print!("v_3: {:02X} ", self.v_3);
+        print!("v_4: {:02X} ", self.v_4);
+        print!("v_5: {:02X} ", self.v_5);
+        print!("v_6: {:02X} ", self.v_6);
+        print!("v_7: {:02X} ", self.v_7);
+        print!("v_8: {:02X} ", self.v_8);
+        print!("v_9: {:02X} ", self.v_9);
+        print!("v_a: {:02X} ", self.v_a);
+        print!("v_b: {:02X} ", self.v_b);
+        print!("v_c: {:02X} ", self.v_c);
+        print!("v_d: {:02X} ", self.v_d);
+        print!("v_e: {:02X} ", self.v_e);
+        print!("v_f: {:02X} ", self.v_f);
+        println!();
+        println!("i: {:04X}", self.i)
     }
 }
