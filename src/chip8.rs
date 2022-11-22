@@ -72,6 +72,9 @@ impl Chip8 {
                 0xA => {
                     self.pc = self.load_i();
                 }
+                0x6 => {
+                    self.pc = self.load_vx();
+                }
                 _ => {
                     eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
                     break;
@@ -84,6 +87,15 @@ impl Chip8 {
     fn load_i(&mut self) -> usize {
         // The value of register I is set to nnn
         self.registers.i = self.addr();
+
+        self.pc + 2
+    }
+
+    // 6xkk - LD Vx, byte
+    fn load_vx(&mut self) -> usize {
+        // The interpreter puts the value kk into register Vx.
+        let register = low(self.high_byte());
+        self.registers.put(register, *self.low_byte());
 
         self.pc + 2
     }
@@ -135,6 +147,11 @@ fn high(byte: &u8) -> u8 {
     (byte & mask << 4) >> 4
 }
 
+fn low(byte: &u8) -> u8 {
+    let mask = (1 << 4) - 1;
+    byte & mask
+}
+
 // 2.2 - Registers
 pub struct Registers {
     // Chip-8 has 16 general purpose 8-bit registers, usually referred to as Vx,
@@ -181,6 +198,31 @@ impl Registers {
             v_e: 0,
             v_f: 0,
             i: 0,
+        }
+    }
+
+    pub fn put(&mut self, register: u8, value: u8) {
+        match register {
+            0x0 => self.v_0 = value,
+            0x1 => self.v_1 = value,
+            0x2 => self.v_2 = value,
+            0x3 => self.v_3 = value,
+            0x4 => self.v_4 = value,
+            0x5 => self.v_5 = value,
+            0x6 => self.v_6 = value,
+            0x7 => self.v_7 = value,
+            0x8 => self.v_8 = value,
+            0x9 => self.v_9 = value,
+            0xa => self.v_a = value,
+            0xb => self.v_b = value,
+            0xc => self.v_c = value,
+            0xd => self.v_d = value,
+            0xe => self.v_e = value,
+            0xf => self.v_f = value,
+            _ => panic!(
+                "Tried to set a register that doesn't exist v_{:x}",
+                register
+            ),
         }
     }
 
