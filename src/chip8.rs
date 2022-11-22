@@ -20,18 +20,21 @@ pub struct Chip8 {
     // There are also some "pseudo-registers" which are not accessable from
     // Chip-8 programs.
 
+    // NOTE: While spec asks for 16-bit numbers, we use usize to simplify direct
+    //       access of arrays in rust.
+
     // The program counter (PC) should be 16-bit, and is used to store the
     // currently executing address.
-    pc: u16,
+    pc: usize,
 
     // The stack pointer (SP) can be 8-bit, it is used to point to the topmost
     // level of the stack.
-    sp: u8,
+    sp: usize,
 
     // The stack is an array of 16 16-bit values, used to store the address that
     // the interpreter shoud return to when finished with a subroutine. Chip-8
     // allows for up to 16 levels of nested subroutines.
-    stack: [u16; 16],
+    stack: [usize; 16],
 }
 
 impl Chip8 {
@@ -57,9 +60,59 @@ impl Chip8 {
         eprintln!("bytes loaded: {}", bytes.len());
     }
 
-    pub fn run(&self) {
-        todo!()
+    pub fn run(&mut self) {
+        // TODO: Set PC start based on CLI flag for start address
+        self.pc = NORMAL_START_INDEX;
+
+        loop {
+            let high_byte = self.high_byte();
+            let low_byte = self.low_byte();
+
+            match high(high_byte) {
+                0xA => {
+                    self.pc = self.load_i();
+                }
+                _ => {
+                    eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
+                    break;
+                }
+            }
+        }
     }
+
+    // Annn - LD I, addr
+    fn load_i(&mut self) -> usize {
+        // The value of register I is set to nnn
+        self.registers.i = self.addr();
+
+        self.pc + 2
+    }
+
+    // 3.0 - Chip-8 Instrutions
+    // All instructions are 2 bytes long and are stored
+    // most-significant-byte first. In memory, the first byte of each
+    // instruction should be located at an even addresses.
+    fn high_byte(&self) -> &u8 {
+        &self.ram[self.pc]
+    }
+
+    fn low_byte(&self) -> &u8 {
+        &self.ram[self.pc + 1]
+    }
+
+    fn addr(&self) -> u16 {
+        let mask = (1 << 12) - 1;
+        self.instruction() & mask
+    }
+
+    fn instruction(&self) -> u16 {
+        ((*self.high_byte() as u16) << 8) | *self.low_byte() as u16
+    }
+}
+
+fn high(byte: &u8) -> u8 {
+    let mask = (1 << 4) - 1;
+    (byte & mask << 4) >> 4
 }
 
 // 2.2 - Registers
