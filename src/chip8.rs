@@ -212,7 +212,7 @@ impl Chip8 {
 
         // Adds the value kk to the value of register Vx, then stores the result
         // in Vx.
-        let result = self.registers.get(x) + self.low_byte();
+        let (result, _) = self.registers.get(x).overflowing_add(*self.low_byte());
         self.registers.put(x, result);
 
         self.pc + 2
@@ -268,7 +268,12 @@ impl Chip8 {
         self.disassemble(format!("ADD I, V{:x}", x).as_str());
 
         // The values of I and Vx are added, and the results are stored in I.
-        self.registers.i = self.registers.i + self.registers.get(x) as u16;
+        let (result, _) = self
+            .registers
+            .i
+            .overflowing_add(self.registers.get(x) as u16);
+
+        self.registers.i = result;
 
         self.pc + 2
     }
