@@ -43,14 +43,17 @@ pub struct Chip8 {
 
 impl Chip8 {
     pub fn new() -> Self {
-        Self {
+        let mut new = Self {
             ram: [0; 4096],
             registers: Registers::new(),
             pc: 0,
             sp: 0,
             stack: [0; 16],
             display: Display::new(),
-        }
+        };
+
+        new.load_hexadecimal_display_bytes();
+        new
     }
 
     pub fn load_rom(&mut self, path: &str) {
@@ -72,6 +75,8 @@ impl Chip8 {
         loop {
             let high_byte = self.high_byte();
             let low_byte = self.low_byte();
+
+            println!("[{}] {:02x}{:02x}", self.pc, high_byte, low_byte);
 
             match high(high_byte) {
                 0x0 => {
@@ -193,6 +198,35 @@ impl Chip8 {
 
     fn instruction(&self) -> u16 {
         ((*self.high_byte() as u16) << 8) | *self.low_byte() as u16
+    }
+
+    fn load_hexadecimal_display_bytes(&mut self) {
+        // Programs may also refer to a group of sprites representing the
+        // hexadecimal digits 0 through F. These sprites are 5 bytes long, or
+        // 8x5 pixels. The data should be stored in the interpreter area of
+        // Chip-8 memory (0x000 to 0x1FF).
+        let bytes = [
+            0xF0, 0x90, 0x90, 0x90, 0xF0, // "0"
+            0x20, 0x60, 0x20, 0x20, 0x70, // "1"
+            0xF0, 0x10, 0xF0, 0x80, 0xF0, // "2"
+            0xF0, 0x10, 0xF0, 0x10, 0xF0, // "3"
+            0x90, 0x90, 0xF0, 0x10, 0x10, // "4"
+            0xF0, 0x80, 0xF0, 0x10, 0xF0, // "5"
+            0xF0, 0x80, 0xF0, 0x90, 0xF0, // "6"
+            0xF0, 0x10, 0x20, 0x40, 0x40, // "7"
+            0xF0, 0x90, 0xF0, 0x90, 0xF0, // "8"
+            0xF0, 0x90, 0xF0, 0x10, 0xF0, // "9"
+            0xF0, 0x90, 0xF0, 0x90, 0x90, // "A"
+            0xE0, 0x90, 0xE0, 0x90, 0xE0, // "B"
+            0xF0, 0x80, 0x80, 0x80, 0xF0, // "C"
+            0xE9, 0x90, 0x90, 0x90, 0xE0, // "D"
+            0xF0, 0x80, 0xF0, 0x80, 0xF9, // "E"
+            0xF0, 0x80, 0xF0, 0x80, 0x80,
+        ];
+
+        for (i, byte) in bytes.iter().enumerate() {
+            self.ram[i] = *byte;
+        }
     }
 
     pub fn dump_to_stdout(&self) {
