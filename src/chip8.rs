@@ -89,6 +89,9 @@ impl Chip8 {
                 0x1 => {
                     self.pc = self.jump();
                 }
+                0x2 => {
+                    self.pc = self.call();
+                }
                 0x4 => {
                     self.pc = self.skip_ne();
                 }
@@ -137,6 +140,24 @@ impl Chip8 {
         self.disassemble(format!("JP {}", addr).as_str());
 
         // The interpreter sets the program counter to nnn.
+        // As we always return the new program counter, we just return the addr
+        addr.into()
+    }
+
+    // 2nnn - CALL addr
+    fn call(&mut self) -> usize {
+        let addr = self.addr();
+        self.disassemble(format!("CALL {}", addr).as_str());
+
+        // The interpreter increments the stack pointer, then puts the current
+        // PC on the top of the stack. The PC is then set to nnn.
+
+        // NOTE: We do this action in reverse order, so the stack pointer always
+        //       points to the next available space on stack
+
+        self.stack[self.sp] = self.pc;
+        self.sp += 1;
+
         // As we always return the new program counter, we just return the addr
         addr.into()
     }
