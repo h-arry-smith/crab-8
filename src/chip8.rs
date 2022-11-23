@@ -86,6 +86,9 @@ impl Chip8 {
                         break;
                     }
                 }
+                0x1 => {
+                    self.pc = self.jump();
+                }
                 0x4 => {
                     self.pc = self.skip_ne();
                 }
@@ -126,6 +129,16 @@ impl Chip8 {
         self.display.clear();
 
         self.pc + 2
+    }
+
+    // 1nnn - JP addr
+    fn jump(&mut self) -> usize {
+        let addr = self.addr();
+        self.disassemble(format!("JP {}", addr).as_str());
+
+        // The interpreter sets the program counter to nnn.
+        // As we always return the new program counter, we just return the addr
+        addr.into()
     }
 
     // 4xkk - SNE Vx, byte
