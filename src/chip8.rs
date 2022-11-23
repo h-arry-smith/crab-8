@@ -98,6 +98,15 @@ impl Chip8 {
                 0xD => {
                     self.pc = self.draw();
                 }
+                0xF => {
+                    // TODO: Rest of the 0xF space instructions
+                    if *low_byte == 0x1E {
+                        self.pc = self.add();
+                    } else {
+                        eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
+                        break;
+                    }
+                }
                 _ => {
                     eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
                     break;
@@ -119,7 +128,7 @@ impl Chip8 {
     // 4xkk - SNE Vx, byte
     fn skip_ne(&mut self) -> usize {
         let x = low(self.high_byte());
-        self.disassemble(format!("SNE V{}, {}", x, self.low_byte()).as_str());
+        self.disassemble(format!("SNE V{:x}, {}", x, self.low_byte()).as_str());
 
         // The interpreter compares register Vx to kk
         let contents = self.registers.get(x);
@@ -135,7 +144,7 @@ impl Chip8 {
     // 6xkk - LD Vx, byte
     fn load_vx(&mut self) -> usize {
         let x = low(self.high_byte());
-        self.disassemble(format!("LD V{}, {}", x, self.low_byte()).as_str());
+        self.disassemble(format!("LD V{:x}, {}", x, self.low_byte()).as_str());
 
         // The interpreter puts the value kk into register Vx.
         self.registers.put(x, *self.low_byte());
@@ -158,7 +167,7 @@ impl Chip8 {
         let x = low(self.high_byte());
         let y = high(self.low_byte());
         let n = low(self.low_byte());
-        self.disassemble(format!("DRW V{}, V{}, {}", x, y, n).as_str());
+        self.disassemble(format!("DRW V{:x}, V{:x}, {}", x, y, n).as_str());
 
         // The interpreter reads n bytes from memory, starting at the address
         // stored in I.
@@ -183,6 +192,17 @@ impl Chip8 {
             // otherwise it is set to 0.
             self.registers.v_f = 0;
         }
+
+        self.pc + 2
+    }
+
+    // Fx1E - ADD I, Vx
+    fn add(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("ADD I, V{:x}", x).as_str());
+
+        // The values of I and Vx are added, and the results are stored in I.
+        self.registers.i = self.registers.i + self.registers.get(x) as u16;
 
         self.pc + 2
     }
