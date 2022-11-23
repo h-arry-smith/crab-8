@@ -80,8 +80,10 @@ impl Chip8 {
                 0x0 => {
                     if *low_byte == 0xE0 {
                         self.pc = self.clear()
+                    } else if *low_byte == 0xEE {
+                        self.pc = self.ret()
                     } else {
-                        // TODO: SYS & RET Instructions
+                        // TODO: SYS Instructions
                         eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
                         break;
                     }
@@ -132,6 +134,20 @@ impl Chip8 {
         self.display.clear();
 
         self.pc + 2
+    }
+
+    // 00EE - RET
+    fn ret(&mut self) -> usize {
+        self.disassemble("RET");
+
+        // The interpreter sets the program counter to the address at the top of
+        // the stack, then subtracts 1 from the stack pointer.
+
+        // NOTE: We do this in reverse order, as our stack pointer always points
+        //       the next available space in the stack
+
+        self.sp -= 1;
+        self.stack[self.sp]
     }
 
     // 1nnn - JP addr
