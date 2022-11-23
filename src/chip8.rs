@@ -76,8 +76,6 @@ impl Chip8 {
             let high_byte = self.high_byte();
             let low_byte = self.low_byte();
 
-            println!("[{}] {:02x}{:02x}", self.pc, high_byte, low_byte);
-
             match high(high_byte) {
                 0x0 => {
                     if *low_byte == 0xE0 {
@@ -110,6 +108,8 @@ impl Chip8 {
 
     // 00E0 - CLS
     fn clear(&mut self) -> usize {
+        self.disassemble("CLS");
+
         // Clear the display.
         self.display.clear();
 
@@ -119,6 +119,8 @@ impl Chip8 {
     // 4xkk - SNE Vx, byte
     fn skip_ne(&mut self) -> usize {
         let x = low(self.high_byte());
+        self.disassemble(format!("SNE V{}, {}", x, self.low_byte()).as_str());
+
         // The interpreter compares register Vx to kk
         let contents = self.registers.get(x);
 
@@ -132,15 +134,19 @@ impl Chip8 {
 
     // 6xkk - LD Vx, byte
     fn load_vx(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("LD V{}, {}", x, self.low_byte()).as_str());
+
         // The interpreter puts the value kk into register Vx.
-        let register = low(self.high_byte());
-        self.registers.put(register, *self.low_byte());
+        self.registers.put(x, *self.low_byte());
 
         self.pc + 2
     }
 
     // Annn - LD I, addr
     fn load_i(&mut self) -> usize {
+        self.disassemble(format!("LD I, {}", self.addr()).as_str());
+
         // The value of register I is set to nnn
         self.registers.i = self.addr();
 
@@ -152,6 +158,8 @@ impl Chip8 {
         let x = low(self.high_byte());
         let y = high(self.low_byte());
         let n = low(self.low_byte());
+        self.disassemble(format!("DRW V{}, V{}, {}", x, y, n).as_str());
+
         // The interpreter reads n bytes from memory, starting at the address
         // stored in I.
         let address = self.registers.i;
@@ -227,6 +235,16 @@ impl Chip8 {
         for (i, byte) in bytes.iter().enumerate() {
             self.ram[i] = *byte;
         }
+    }
+    fn disassemble(&self, note: &str) {
+        // TODO: Put behind a flag
+        println!(
+            "[{}] {:02x}{:02x} - {}",
+            self.pc,
+            self.high_byte(),
+            self.low_byte(),
+            note
+        );
     }
 
     pub fn dump_to_stdout(&self) {
