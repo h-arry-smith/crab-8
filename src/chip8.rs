@@ -83,6 +83,9 @@ impl Chip8 {
                         break;
                     }
                 }
+                0x4 => {
+                    self.pc = self.skip_ne();
+                }
                 0x6 => {
                     self.pc = self.load_vx();
                 }
@@ -106,6 +109,20 @@ impl Chip8 {
         self.display.clear();
 
         self.pc + 2
+    }
+
+    // 4xkk - SNE Vx, byte
+    fn skip_ne(&mut self) -> usize {
+        let x = low(self.high_byte());
+        // The interpreter compares register Vx to kk
+        let contents = self.registers.get(x);
+
+        // and if they are not equal, increments the program counter by 2.
+        if contents != *self.low_byte() {
+            self.pc + 4
+        } else {
+            self.pc + 2
+        }
     }
 
     // 6xkk - LD Vx, byte
