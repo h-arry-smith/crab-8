@@ -92,6 +92,9 @@ impl Chip8 {
                 0x6 => {
                     self.pc = self.load_vx();
                 }
+                0x7 => {
+                    self.pc = self.add_vx();
+                }
                 0xA => {
                     self.pc = self.load_i();
                 }
@@ -148,6 +151,19 @@ impl Chip8 {
 
         // The interpreter puts the value kk into register Vx.
         self.registers.put(x, *self.low_byte());
+
+        self.pc + 2
+    }
+
+    // 7xkk - ADD Vx, byte
+    fn add_vx(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("ADD V{:x}, {}", x, self.low_byte()).as_str());
+
+        // Adds the value kk to the value of register Vx, then stores the result
+        // in Vx.
+        let result = self.registers.get(x) + self.low_byte();
+        self.registers.put(x, result);
 
         self.pc + 2
     }
