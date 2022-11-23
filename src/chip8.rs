@@ -1,6 +1,6 @@
 // Reference: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 
-use std::fs::{self};
+use std::fs;
 
 // 2.1 - Memory
 // Most Chip-8 programs start at location 0x200 (512), but some begin at
