@@ -21,12 +21,16 @@ fn main() {
 
     cpu.run();
 
+    let mut dump = false;
     match args.get(2) {
         Some(flag) => {
             if flag == "-d" || flag == "--dump" {
-                cpu.dump_to_stdout();
+                dump = true;
             }
         }
         None => {}
+    }
+    if dump {
+        cpu.dump_to_stdout();
     }
 }

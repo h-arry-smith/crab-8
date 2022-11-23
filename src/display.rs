@@ -105,6 +105,7 @@ impl<'a> Sprite<'a> {
                 dx %= 64;
             }
 
+            dx = x % 64;
             dy += 1;
             dy %= 32;
         }
