@@ -41,6 +41,10 @@ impl Display {
         self.memory[self.to_index(x, y)]
     }
 
+    pub fn clear(&mut self) {
+        self.memory = [false; PIXEL_COUNT];
+    }
+
     fn to_index(&self, x: usize, y: usize) -> usize {
         y * 64 + x
     }

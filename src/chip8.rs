@@ -74,6 +74,15 @@ impl Chip8 {
             let low_byte = self.low_byte();
 
             match high(high_byte) {
+                0x0 => {
+                    if *low_byte == 0xE0 {
+                        self.pc = self.clear()
+                    } else {
+                        // TODO: SYS & RET Instructions
+                        eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
+                        break;
+                    }
+                }
                 0x6 => {
                     self.pc = self.load_vx();
                 }
@@ -89,6 +98,14 @@ impl Chip8 {
                 }
             }
         }
+    }
+
+    // 00E0 - CLS
+    fn clear(&mut self) -> usize {
+        // Clear the display.
+        self.display.clear();
+
+        self.pc + 2
     }
 
     // 6xkk - LD Vx, byte
