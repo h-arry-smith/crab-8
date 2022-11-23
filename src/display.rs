@@ -42,19 +42,32 @@ impl Display {
     }
 
     fn to_index(&self, x: usize, y: usize) -> usize {
-        y * 32 + x
+        y * 64 + x
+    }
+
+    pub fn dump_to_stdout(&self) {
+        for line in self.memory.chunks(64) {
+            for pixel in line {
+                if *pixel {
+                    print!("#");
+                } else {
+                    print!(" ");
+                }
+            }
+            println!();
+        }
     }
 }
 
 // Chip-8 draws graphics on screen through the use of sprites.
 // A sprite is a group of bytes which are a binary representation of the desired
 // picture.
-pub struct Sprite {
-    bytes: Vec<u8>,
+pub struct Sprite<'a> {
+    bytes: &'a [u8],
 }
 
-impl Sprite {
-    pub fn new(bytes: Vec<u8>) -> Self {
+impl<'a> Sprite<'a> {
+    pub fn new(bytes: &'a [u8]) -> Self {
         // Chip-8 sprites may be up to 15 bytes
         assert!(bytes.len() <= 15);
 
@@ -109,6 +122,7 @@ impl Sprite {
     }
 }
 
+#[derive(PartialEq)]
 pub enum Collision {
     True,
     False,

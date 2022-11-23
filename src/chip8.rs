@@ -2,6 +2,8 @@
 
 use std::fs;
 
+use crate::display::{Collision, Display, Sprite};
+
 // 2.1 - Memory
 // Most Chip-8 programs start at location 0x200 (512), but some begin at
 // 0x600 (1536). Programs beginning at 0x600 are intended for the ETI 660
@@ -35,6 +37,8 @@ pub struct Chip8 {
     // the interpreter shoud return to when finished with a subroutine. Chip-8
     // allows for up to 16 levels of nested subroutines.
     stack: [usize; 16],
+
+    display: Display,
 }
 
 impl Chip8 {
@@ -45,6 +49,7 @@ impl Chip8 {
             pc: 0,
             sp: 0,
             stack: [0; 16],
+            display: Display::new(),
         }
     }
 
@@ -69,11 +74,14 @@ impl Chip8 {
             let low_byte = self.low_byte();
 
             match high(high_byte) {
+                0x6 => {
+                    self.pc = self.load_vx();
+                }
                 0xA => {
                     self.pc = self.load_i();
                 }
-                0x6 => {
-                    self.pc = self.load_vx();
+                0xD => {
+                    self.pc = self.draw();
                 }
                 _ => {
                     eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
@@ -81,6 +89,15 @@ impl Chip8 {
                 }
             }
         }
+    }
+
+    // 6xkk - LD Vx, byte
+    fn load_vx(&mut self) -> usize {
+        // The interpreter puts the value kk into register Vx.
+        let register = low(self.high_byte());
+        self.registers.put(register, *self.low_byte());
+
+        self.pc + 2
     }
 
     // Annn - LD I, addr
@@ -91,11 +108,34 @@ impl Chip8 {
         self.pc + 2
     }
 
-    // 6xkk - LD Vx, byte
-    fn load_vx(&mut self) -> usize {
-        // The interpreter puts the value kk into register Vx.
-        let register = low(self.high_byte());
-        self.registers.put(register, *self.low_byte());
+    // Dxyn - DRW Vx, Vy, nibble
+    fn draw(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let y = high(self.low_byte());
+        let n = low(self.low_byte());
+        // The interpreter reads n bytes from memory, starting at the address
+        // stored in I.
+        let address = self.registers.i;
+        let bytes = self
+            .ram
+            .get(address as usize..(address + n as u16) as usize)
+            .expect("Bytes to draw out of range");
+
+        // These bytes are then displayed as sprites on screen at
+        // coordinates (Vx, Vy).
+        let x = self.registers.get(x);
+        let y = self.registers.get(y);
+        let sprite = Sprite::new(bytes);
+
+        let collision = sprite.draw(x.into(), y.into(), &mut self.display);
+
+        // If this causes any pixels to be erased, VF is set to 1
+        if collision == Collision::True {
+            self.registers.v_f = 1;
+        } else {
+            // otherwise it is set to 0.
+            self.registers.v_f = 0;
+        }
 
         self.pc + 2
     }
@@ -139,6 +179,10 @@ impl Chip8 {
         println!("pc: {:04X}", self.pc);
         println!("sp: {:04X}", self.sp);
         println!("stack: {:?}", self.stack);
+
+        println!();
+        println!("=== SCREEN ===");
+        self.display.dump_to_stdout();
     }
 }
 
@@ -219,6 +263,31 @@ impl Registers {
             0xd => self.v_d = value,
             0xe => self.v_e = value,
             0xf => self.v_f = value,
+            _ => panic!(
+                "Tried to set a register that doesn't exist v_{:x}",
+                register
+            ),
+        }
+    }
+
+    pub fn get(&self, register: u8) -> u8 {
+        match register {
+            0x0 => self.v_0,
+            0x1 => self.v_1,
+            0x2 => self.v_2,
+            0x3 => self.v_3,
+            0x4 => self.v_4,
+            0x5 => self.v_5,
+            0x6 => self.v_6,
+            0x7 => self.v_7,
+            0x8 => self.v_8,
+            0x9 => self.v_9,
+            0xa => self.v_a,
+            0xb => self.v_b,
+            0xc => self.v_c,
+            0xd => self.v_d,
+            0xe => self.v_e,
+            0xf => self.v_f,
             _ => panic!(
                 "Tried to set a register that doesn't exist v_{:x}",
                 register
