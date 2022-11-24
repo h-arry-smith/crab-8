@@ -38,7 +38,7 @@ pub struct Chip8 {
     // allows for up to 16 levels of nested subroutines.
     stack: [usize; 16],
 
-    display: Display,
+    pub display: Display,
 
     debug_output: bool,
 }

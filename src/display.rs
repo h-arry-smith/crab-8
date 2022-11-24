@@ -12,7 +12,7 @@ pub struct Display {
     // monochrome display with this format:
     // (0,  0)    (63,  0)
     // (0, 31)    (63, 31)
-    memory: [bool; PIXEL_COUNT],
+    pub memory: [bool; PIXEL_COUNT],
 }
 
 impl Display {
