@@ -164,7 +164,10 @@ impl Chip8 {
         //       the next available space in the stack
 
         self.sp -= 1;
-        self.stack[self.sp]
+
+        // NOTE: We add two here counter-intuitively, as the we want to execute
+        //       the next instruction after the return point.
+        self.stack[self.sp] + 2
     }
 
     // 1nnn - JP addr
@@ -391,8 +394,6 @@ impl Chip8 {
         // The interpreter reads values from memory starting at location I
         // into registers V0 through Vx.
         for n in 0..=x {
-            dbg!(&n);
-            dbg!(&self.ram[i as usize + n as usize]);
             self.registers.put(n, self.ram[i as usize + n as usize]);
         }
 
