@@ -115,6 +115,8 @@ impl Chip8 {
                     self.pc = self.vx_and_vy();
                 } else if low(low_byte) == 4 {
                     self.pc = self.add_vx_and_vy();
+                } else if low(low_byte) == 6 {
+                    self.pc = self.vx_shr();
                 } else if low(low_byte) == 0xE {
                     self.pc = self.vx_shl();
                 } else {
@@ -283,27 +285,6 @@ impl Chip8 {
         self.pc + 2
     }
 
-    // 8xyE - SHL Vx {, Vy}
-    fn vx_shl(&mut self) -> usize {
-        let x = low(self.high_byte());
-        self.disassemble(format!("SHL V{:x}", x).as_str());
-
-        // If the most-significant bit of Vx is 1, then VF is set to 1,
-        // otherwise to 0. Then Vx is multiplied by 2.
-
-        let (result, carry) = self.registers.get(x).overflowing_shl(1);
-
-        self.registers.put(x, result);
-
-        if carry {
-            self.registers.v_f = 1
-        } else {
-            self.registers.v_f = 0
-        }
-
-        self.pc + 2
-    }
-
     // 8xy4 - ADD Vx, Vy
     fn add_vx_and_vy(&mut self) -> usize {
         let x = low(self.high_byte());
@@ -323,6 +304,48 @@ impl Chip8 {
 
         // Only the lowest 8 bits of the result are kept, and stored in Vx.
         self.registers.put(x, result);
+
+        self.pc + 2
+    }
+
+    // 8xy6 - SHR Vx {, Vy}
+    fn vx_shr(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("SHR V{:x}", x).as_str());
+
+        // If the least-significant bit of Vx is 1, then VF is set to 1,
+        // otherwise 0. Then Vx is divided by 2.
+
+        let (result, carry) = self.registers.get(x).overflowing_shr(1);
+
+        self.registers.put(x, result);
+
+        if carry {
+            self.registers.v_f = 1
+        } else {
+            self.registers.v_f = 0
+        }
+
+        self.pc + 2
+    }
+
+    // 8xyE - SHL Vx {, Vy}
+    fn vx_shl(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("SHL V{:x}", x).as_str());
+
+        // If the most-significant bit of Vx is 1, then VF is set to 1,
+        // otherwise to 0. Then Vx is multiplied by 2.
+
+        let (result, carry) = self.registers.get(x).overflowing_shl(1);
+
+        self.registers.put(x, result);
+
+        if carry {
+            self.registers.v_f = 1
+        } else {
+            self.registers.v_f = 0
+        }
 
         self.pc + 2
     }
