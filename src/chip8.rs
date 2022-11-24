@@ -65,68 +65,63 @@ impl Chip8 {
             self.ram[NORMAL_START_INDEX + index] = *byte;
         }
 
-        eprintln!("bytes loaded: {}", bytes.len());
-    }
-
-    pub fn run(&mut self) {
         // TODO: Set PC start based on CLI flag for start address
         self.pc = NORMAL_START_INDEX;
 
-        loop {
-            let high_byte = self.high_byte();
-            let low_byte = self.low_byte();
+        eprintln!("bytes loaded: {}", bytes.len());
+    }
 
-            match high(high_byte) {
-                0x0 => {
-                    if *low_byte == 0xE0 {
-                        self.pc = self.clear()
-                    } else if *low_byte == 0xEE {
-                        self.pc = self.ret()
-                    } else {
-                        // TODO: SYS Instructions
-                        eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
-                        break;
-                    }
-                }
-                0x1 => {
-                    self.pc = self.jump();
-                }
-                0x2 => {
-                    self.pc = self.call();
-                }
-                0x4 => {
-                    self.pc = self.skip_ne();
-                }
-                0x6 => {
-                    self.pc = self.load_vx();
-                }
-                0x7 => {
-                    self.pc = self.add_vx();
-                }
-                0xA => {
-                    self.pc = self.load_i();
-                }
-                0xD => {
-                    self.pc = self.draw();
-                }
-                0xF => {
-                    // TODO: Rest of the 0xF space instructions
-                    if *low_byte == 0x1E {
-                        self.pc = self.add();
-                    } else {
-                        eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
-                        break;
-                    }
-                }
-                _ => {
-                    eprintln!("Unrecognised instrution 0x{:x}{:x}", high_byte, low_byte);
-                    break;
+    pub fn step(&mut self) -> Chip8Result {
+        let high_byte = self.high_byte();
+        let low_byte = self.low_byte();
+
+        match high(high_byte) {
+            0x0 => {
+                if *low_byte == 0xE0 {
+                    self.pc = self.clear();
+                } else if *low_byte == 0xEE {
+                    self.pc = self.ret();
+                } else {
+                    return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
                 }
             }
-            // temporary
-            print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-            self.display.dump_to_stdout();
+            0x1 => {
+                self.pc = self.jump();
+            }
+            0x2 => {
+                self.pc = self.call();
+            }
+            0x4 => {
+                self.pc = self.skip_ne();
+            }
+            0x6 => {
+                self.pc = self.load_vx();
+            }
+            0x7 => {
+                self.pc = self.add_vx();
+            }
+            0xA => {
+                self.pc = self.load_i();
+            }
+            0xD => {
+                self.pc = self.draw();
+            }
+            0xF => {
+                // TODO: Rest of the 0xF space instructions
+                if *low_byte == 0x1E {
+                    self.pc = self.add();
+                } else {
+                    return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
+                }
+            }
+            _ => return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte)),
         }
+
+        // temporary
+        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+        self.display.dump_to_stdout();
+
+        Ok(())
     }
 
     // 00E0 - CLS
@@ -495,4 +490,10 @@ impl Registers {
         println!();
         println!("i: {:04X}", self.i)
     }
+}
+
+pub type Chip8Result = Result<(), Error>;
+
+pub enum Error {
+    UnrecognisedInstruction(u8, u8),
 }

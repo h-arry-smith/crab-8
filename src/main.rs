@@ -1,6 +1,6 @@
 use std::{env, process};
 
-use flake_8::chip8::Chip8;
+use flake_8::chip8::{Chip8, Error};
 
 // TODO: Replace CLI argument parsing with a better library before releasing as
 //       any public project.
@@ -19,7 +19,17 @@ fn main() {
 
     cpu.load_rom(path);
 
-    cpu.run();
+    loop {
+        match cpu.step() {
+            Ok(_) => continue,
+            Err(err) => match err {
+                Error::UnrecognisedInstruction(high, low) => {
+                    eprintln!("Unrecognised Instruction: {:02X} {:02X}", high, low);
+                    break;
+                }
+            },
+        }
+    }
 
     let mut dump = false;
     match args.get(2) {
