@@ -1,5 +1,6 @@
 // Reference: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 
+use rand::Rng;
 use std::fs;
 
 use crate::display::{Collision, Display, Sprite};
@@ -119,6 +120,9 @@ impl Chip8 {
             }
             0xA => {
                 self.pc = self.load_i();
+            }
+            0xC => {
+                self.pc = self.rand();
             }
             0xD => {
                 self.pc = self.draw();
@@ -306,6 +310,24 @@ impl Chip8 {
 
         // The value of register I is set to nnn
         self.registers.i = self.addr();
+
+        self.pc + 2
+    }
+
+    // Cxkk - RND Vx, byte
+    fn rand(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("RND V{:x}, {:x}", x, self.low_byte()).as_str());
+
+        // The interpreter generates a random number from 0 to 255
+        let mut rng = rand::thread_rng();
+        let random_number: u8 = rng.gen();
+
+        // which is then ANDed with the value kk.
+        let random_number = random_number & self.low_byte();
+
+        // The results are stored in Vx.
+        self.registers.put(x, random_number);
 
         self.pc + 2
     }
