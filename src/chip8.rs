@@ -95,11 +95,14 @@ impl Chip8 {
             0x2 => {
                 self.pc = self.call();
             }
+            0x3 => {
+                self.pc = self.skip_eq();
+            }
             0x4 => {
-                self.pc = self.skip_ne();
+                self.pc = self.skip_neq();
             }
             0x5 => {
-                self.pc = self.skip_eq();
+                self.pc = self.skip_eq_reg();
             }
             0x6 => {
                 self.pc = self.load_vx();
@@ -205,8 +208,24 @@ impl Chip8 {
         addr.into()
     }
 
+    // 3xkk - SE Vx, byte
+    fn skip_eq(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("SE V{:x}, {}", x, self.low_byte()).as_str());
+
+        // The interpreter compares register Vx to kk
+        let contents = self.registers.get(x);
+
+        // and if they are equal, increments the program counter by 2.
+        if contents == *self.low_byte() {
+            self.pc + 4
+        } else {
+            self.pc + 2
+        }
+    }
+
     // 4xkk - SNE Vx, byte
-    fn skip_ne(&mut self) -> usize {
+    fn skip_neq(&mut self) -> usize {
         let x = low(self.high_byte());
         self.disassemble(format!("SNE V{:x}, {}", x, self.low_byte()).as_str());
 
@@ -222,7 +241,7 @@ impl Chip8 {
     }
 
     // 5xy0 - SE Vx, Vy
-    fn skip_eq(&mut self) -> usize {
+    fn skip_eq_reg(&mut self) -> usize {
         let x = low(self.high_byte());
         let y = high(self.low_byte());
         self.disassemble(format!("SE V{:x}, V{:x}", x, y).as_str());
