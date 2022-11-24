@@ -131,6 +131,8 @@ impl Chip8 {
                 // TODO: Rest of the 0xF space instructions
                 if *low_byte == 0x1E {
                     self.pc = self.add();
+                } else if *low_byte == 0x55 {
+                    self.pc = self.store_array();
                 } else if *low_byte == 0x65 {
                     self.pc = self.load_array();
                 } else {
@@ -381,6 +383,22 @@ impl Chip8 {
             .overflowing_add(self.registers.get(x) as u16);
 
         self.registers.i = result;
+
+        self.pc + 2
+    }
+
+    // Fx65 - LD [I], Vx
+    fn store_array(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let i = self.registers.i;
+        self.disassemble(format!("LD [{:x}], V{:x}", x, i).as_str());
+
+        // The interpreter copies the values of registers V0 through Vx into
+        // memory, starting at the address in I.
+
+        for n in 0..=x {
+            self.ram[i as usize + n as usize] = self.registers.get(n);
+        }
 
         self.pc + 2
     }
