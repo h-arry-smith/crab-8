@@ -390,8 +390,9 @@ impl Chip8 {
 
         // The interpreter reads values from memory starting at location I
         // into registers V0 through Vx.
-
-        for n in 0..x {
+        for n in 0..=x {
+            dbg!(&n);
+            dbg!(&self.ram[i as usize + n as usize]);
             self.registers.put(n, self.ram[i as usize + n as usize]);
         }
 
