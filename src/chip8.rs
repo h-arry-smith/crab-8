@@ -105,7 +105,9 @@ impl Chip8 {
             }
             0x8 => {
                 // TODO: Rest of the 0x8 instructions
-                if low(low_byte) == 4 {
+                if low(low_byte) == 0 {
+                    self.pc = self.set_vx_to_vy();
+                } else if low(low_byte) == 4 {
                     self.pc = self.add_vx_and_vy();
                 } else {
                     return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
@@ -221,6 +223,18 @@ impl Chip8 {
         // in Vx.
         let (result, _) = self.registers.get(x).overflowing_add(*self.low_byte());
         self.registers.put(x, result);
+
+        self.pc + 2
+    }
+
+    // 8xy0 - LD Vx, Vy
+    fn set_vx_to_vy(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let y = high(self.low_byte());
+        self.disassemble(format!("LD V{:x}, V{:x}", x, y).as_str());
+
+        // Stores the value of register Vy in register Vx.
+        self.registers.put(x, self.registers.get(y));
 
         self.pc + 2
     }
