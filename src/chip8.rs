@@ -103,6 +103,14 @@ impl Chip8 {
             0x7 => {
                 self.pc = self.add_vx();
             }
+            0x8 => {
+                // TODO: Rest of the 0x8 instructions
+                if low(low_byte) == 4 {
+                    self.pc = self.add_vx_and_vy();
+                } else {
+                    return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
+                }
+            }
             0xA => {
                 self.pc = self.load_i();
             }
@@ -210,6 +218,29 @@ impl Chip8 {
         // Adds the value kk to the value of register Vx, then stores the result
         // in Vx.
         let (result, _) = self.registers.get(x).overflowing_add(*self.low_byte());
+        self.registers.put(x, result);
+
+        self.pc + 2
+    }
+
+    // 8xy4 - ADD Vx, Vy
+    fn add_vx_and_vy(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let y = high(self.low_byte());
+        self.disassemble(format!("ADD V{x}, V{y}").as_str());
+
+        // The values of Vx and Vy are added together.
+        let (result, carry) = self.registers.get(x).overflowing_add(self.registers.get(y));
+
+        // If the result is greater than 8 bits (i.e., > 255,) VF is set to 1,
+        if carry {
+            self.registers.v_f = 1;
+        } else {
+            // otherwise 0.
+            self.registers.v_f = 0;
+        }
+
+        // Only the lowest 8 bits of the result are kept, and stored in Vx.
         self.registers.put(x, result);
 
         self.pc + 2
