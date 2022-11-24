@@ -121,6 +121,8 @@ impl Chip8 {
                 // TODO: Rest of the 0xF space instructions
                 if *low_byte == 0x1E {
                     self.pc = self.add();
+                } else if *low_byte == 0x65 {
+                    self.pc = self.load_array();
                 } else {
                     return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
                 }
@@ -227,7 +229,7 @@ impl Chip8 {
     fn add_vx_and_vy(&mut self) -> usize {
         let x = low(self.high_byte());
         let y = high(self.low_byte());
-        self.disassemble(format!("ADD V{x}, V{y}").as_str());
+        self.disassemble(format!("ADD V{:x}, V{:x}", x, y).as_str());
 
         // The values of Vx and Vy are added together.
         let (result, carry) = self.registers.get(x).overflowing_add(self.registers.get(y));
@@ -302,6 +304,22 @@ impl Chip8 {
             .overflowing_add(self.registers.get(x) as u16);
 
         self.registers.i = result;
+
+        self.pc + 2
+    }
+
+    // Fx65 - LD Vx, [I]
+    fn load_array(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let i = self.registers.i;
+        self.disassemble(format!("LD V{:x}, [{:x}]", x, i).as_str());
+
+        // The interpreter reads values from memory starting at location I
+        // into registers V0 through Vx.
+
+        for n in 0..x {
+            self.registers.put(n, self.ram[i as usize + n as usize]);
+        }
 
         self.pc + 2
     }
