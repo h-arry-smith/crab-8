@@ -15,9 +15,20 @@ fn main() {
         process::exit(1);
     }
 
+    let mut dump = false;
+    match args.get(2) {
+        Some(flag) => {
+            if flag == "-d" || flag == "--dump" {
+                dump = true;
+            }
+        }
+        None => {}
+    }
+
     let path = args.get(1).expect("A file path must be provided.");
 
     cpu.load_rom(path);
+    cpu.set_debug_output(dump);
 
     loop {
         match cpu.step() {
@@ -31,15 +42,6 @@ fn main() {
         }
     }
 
-    let mut dump = false;
-    match args.get(2) {
-        Some(flag) => {
-            if flag == "-d" || flag == "--dump" {
-                dump = true;
-            }
-        }
-        None => {}
-    }
     if dump {
         cpu.dump_to_stdout();
     }

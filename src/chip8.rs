@@ -39,6 +39,8 @@ pub struct Chip8 {
     stack: [usize; 16],
 
     display: Display,
+
+    debug_output: bool,
 }
 
 impl Chip8 {
@@ -50,6 +52,7 @@ impl Chip8 {
             sp: 0,
             stack: [0; 16],
             display: Display::new(),
+            debug_output: false,
         };
 
         new.load_hexadecimal_display_bytes();
@@ -116,10 +119,6 @@ impl Chip8 {
             }
             _ => return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte)),
         }
-
-        // temporary
-        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-        self.display.dump_to_stdout();
 
         Ok(())
     }
@@ -326,7 +325,10 @@ impl Chip8 {
         }
     }
     fn disassemble(&self, note: &str) {
-        // TODO: Put behind a flag
+        if !self.debug_output {
+            return;
+        }
+
         println!(
             "[{}] {:02x}{:02x} - {}",
             self.pc,
@@ -334,6 +336,10 @@ impl Chip8 {
             self.low_byte(),
             note
         );
+    }
+
+    pub fn set_debug_output(&mut self, value: bool) {
+        self.debug_output = value;
     }
 
     pub fn dump_to_stdout(&self) {
