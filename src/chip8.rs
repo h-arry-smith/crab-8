@@ -107,6 +107,8 @@ impl Chip8 {
                 // TODO: Rest of the 0x8 instructions
                 if low(low_byte) == 0 {
                     self.pc = self.set_vx_to_vy();
+                } else if low(low_byte) == 2 {
+                    self.pc = self.vx_and_vy();
                 } else if low(low_byte) == 4 {
                     self.pc = self.add_vx_and_vy();
                 } else {
@@ -239,6 +241,18 @@ impl Chip8 {
         self.pc + 2
     }
 
+    // 8xy2 - AND Vx, Vy
+    fn vx_and_vy(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let y = high(self.low_byte());
+        self.disassemble(format!("AND V{:x}, V{:x}", x, y).as_str());
+
+        // Performs a bitwise AND on the values of Vx and Vy, then stores the result in Vx.
+        self.registers
+            .put(x, self.registers.get(y) & self.registers.get(x));
+
+        self.pc + 2
+    }
     // 8xy4 - ADD Vx, Vy
     fn add_vx_and_vy(&mut self) -> usize {
         let x = low(self.high_byte());
