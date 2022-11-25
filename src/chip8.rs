@@ -116,6 +116,8 @@ impl Chip8 {
                     self.pc = self.set_vx_to_vy();
                 } else if low(low_byte) == 2 {
                     self.pc = self.vx_and_vy();
+                } else if low(low_byte) == 3 {
+                    self.pc = self.vx_xor_vy();
                 } else if low(low_byte) == 4 {
                     self.pc = self.add_vx_and_vy();
                 } else if low(low_byte) == 5 {
@@ -299,9 +301,24 @@ impl Chip8 {
         let y = high(self.low_byte());
         self.disassemble(format!("AND V{:x}, V{:x}", x, y).as_str());
 
-        // Performs a bitwise AND on the values of Vx and Vy, then stores the result in Vx.
+        // Performs a bitwise AND on the values of Vx and Vy, then stores the
+        // result in Vx.
         self.registers
             .put(x, self.registers.get(y) & self.registers.get(x));
+
+        self.pc + 2
+    }
+
+    // 8xy3 - XOR Vx, Vy
+    fn vx_xor_vy(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let y = high(self.low_byte());
+        self.disassemble(format!("XOR V{:x}, V{:x}", x, y).as_str());
+
+        // Performs a bitwise exclusive OR on the values of Vx and Vy, then
+        // stores the result in Vx.
+        self.registers
+            .put(x, self.registers.get(y) ^ self.registers.get(x));
 
         self.pc + 2
     }
