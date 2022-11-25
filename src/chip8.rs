@@ -130,6 +130,9 @@ impl Chip8 {
                     return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
                 }
             }
+            0x9 => {
+                self.pc = self.skip_vx_neq_vy();
+            }
             0xA => {
                 self.pc = self.load_i();
             }
@@ -410,6 +413,21 @@ impl Chip8 {
         }
 
         self.pc + 2
+    }
+
+    // 9xy0 - SNE Vx, Vy
+    fn skip_vx_neq_vy(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let y = high(self.low_byte());
+        self.disassemble(format!("SNE V{:x}, V{:x}", x, y).as_str());
+
+        // The values of Vx and Vy are compared,
+        if self.registers.get(x) != self.registers.get(y) {
+            // and if they are not equal, the program counter is increased by 2.
+            self.pc + 4
+        } else {
+            self.pc + 2
+        }
     }
 
     // Annn - LD I, addr
