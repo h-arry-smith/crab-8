@@ -494,7 +494,7 @@ impl Chip8 {
     fn store_array(&mut self) -> usize {
         let x = low(self.high_byte());
         let i = self.registers.i;
-        self.disassemble(format!("LD [{:x}], V{:x}", x, i).as_str());
+        self.disassemble(format!("LD [{:x}], V{:x}", i, x).as_str());
 
         // The interpreter copies the values of registers V0 through Vx into
         // memory, starting at the address in I.
