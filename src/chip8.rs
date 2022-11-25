@@ -118,6 +118,8 @@ impl Chip8 {
                     self.pc = self.vx_and_vy();
                 } else if low(low_byte) == 4 {
                     self.pc = self.add_vx_and_vy();
+                } else if low(low_byte) == 5 {
+                    self.pc = self.sub_vx_and_vy();
                 } else if low(low_byte) == 6 {
                     self.pc = self.vx_shr();
                 } else if low(low_byte) == 0xE {
@@ -322,6 +324,30 @@ impl Chip8 {
         }
 
         // Only the lowest 8 bits of the result are kept, and stored in Vx.
+        self.registers.put(x, result);
+
+        self.pc + 2
+    }
+
+    // 8xy5 - SUB Vx, Vy
+    fn sub_vx_and_vy(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let y = high(self.low_byte());
+        self.disassemble(format!("SUB V{:x}, V{:x}", x, y).as_str());
+
+        let vx = self.registers.get(x);
+        let vy = self.registers.get(y);
+
+        // If Vx > Vy, then VF is set to 1, otherwise 0.
+        // Then Vy is subtracted from Vx, and the results stored in Vx.
+        let (result, borrow) = vx.overflowing_sub(vy);
+
+        if borrow {
+            self.registers.v_f = 1;
+        } else {
+            self.registers.v_f = 0;
+        }
+
         self.registers.put(x, result);
 
         self.pc + 2
