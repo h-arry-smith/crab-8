@@ -112,41 +112,38 @@ impl Chip8 {
             0x7 => {
                 self.pc = self.add_vx();
             }
-            0x8 => {
-                match low(low_byte) {
-                    0 => {
-                        self.pc = self.set_vx_to_vy();
-                    }
-                    1 => {
-                        self.pc = self.vx_or_vy();
-                    }
-                    2 => {
-                        self.pc = self.vx_and_vy();
-                    }
-                    3 => {
-                        self.pc = self.vx_xor_vy();
-                    }
-                    4 => {
-                        self.pc = self.add_vx_and_vy();
-                    }
-                    5 => {
-                        self.pc = self.sub_vx_and_vy();
-                    }
-                    6 => {
-                        self.pc = self.vx_shr();
-                    }
-                    7 => {
-                        todo!();
-                        // self.pc = self.vx_subn_vy();
-                    }
-                    0xE => {
-                        self.pc = self.vx_shl();
-                    }
-                    _ => {
-                        return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
-                    }
+            0x8 => match low(low_byte) {
+                0 => {
+                    self.pc = self.set_vx_to_vy();
                 }
-            }
+                1 => {
+                    self.pc = self.vx_or_vy();
+                }
+                2 => {
+                    self.pc = self.vx_and_vy();
+                }
+                3 => {
+                    self.pc = self.vx_xor_vy();
+                }
+                4 => {
+                    self.pc = self.add_vx_and_vy();
+                }
+                5 => {
+                    self.pc = self.sub_vx_and_vy();
+                }
+                6 => {
+                    self.pc = self.vx_shr();
+                }
+                7 => {
+                    self.pc = self.vx_subn_vy();
+                }
+                0xE => {
+                    self.pc = self.vx_shl();
+                }
+                _ => {
+                    return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
+                }
+            },
             0x9 => {
                 self.pc = self.skip_vx_neq_vy();
             }
@@ -465,6 +462,30 @@ impl Chip8 {
         } else {
             self.registers.v_f = 0
         }
+
+        self.pc + 2
+    }
+
+    // 8xy7 - SUBN Vx, Vy
+    fn vx_subn_vy(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let y = low(self.low_byte());
+        self.disassemble(format!("SUBN V{:x}, V{:x}", x, y).as_str());
+
+        let vx = self.registers.get(x);
+        let vy = self.registers.get(y);
+
+        // If Vy > Vx, then VF is set to 1,
+        if vy > vx {
+            self.registers.v_f = 1
+        } else {
+            // otherwise 0.
+            self.registers.v_f = 0
+        }
+
+        // Then Vx is subtracted from Vy, and the results stored in Vx.
+        let (result, _) = vy.overflowing_sub(vx);
+        self.registers.put(x, result);
 
         self.pc + 2
     }
