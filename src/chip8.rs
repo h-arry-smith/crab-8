@@ -118,8 +118,7 @@ impl Chip8 {
                         self.pc = self.set_vx_to_vy();
                     }
                     1 => {
-                        todo!();
-                        // self.pc = self.vx_or_vy();
+                        self.pc = self.vx_or_vy();
                     }
                     2 => {
                         self.pc = self.vx_and_vy();
@@ -357,6 +356,20 @@ impl Chip8 {
 
         // Stores the value of register Vy in register Vx.
         self.registers.put(x, self.registers.get(y));
+
+        self.pc + 2
+    }
+
+    // 8xy1 - OR Vx, Vy
+    fn vx_or_vy(&mut self) -> usize {
+        let x = low(self.high_byte());
+        let y = high(self.low_byte());
+        self.disassemble(format!("OR V{:x}, V{:x}", x, y).as_str());
+
+        // Performs a bitwise OR on the values of Vx and Vy, then stores the
+        // result in Vx.
+        self.registers
+            .put(x, self.registers.get(y) | self.registers.get(x));
 
         self.pc + 2
     }
