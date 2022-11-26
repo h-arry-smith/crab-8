@@ -5,6 +5,8 @@ use std::fs;
 
 use crate::display::{Collision, Display, Sprite};
 
+// TODO: Sound output with ST
+
 // 2.1 - Memory
 // Most Chip-8 programs start at location 0x200 (512), but some begin at
 // 0x600 (1536). Programs beginning at 0x600 are intended for the ETI 660
@@ -111,23 +113,39 @@ impl Chip8 {
                 self.pc = self.add_vx();
             }
             0x8 => {
-                // TODO: Rest of the 0x8 instructions
-                if low(low_byte) == 0 {
-                    self.pc = self.set_vx_to_vy();
-                } else if low(low_byte) == 2 {
-                    self.pc = self.vx_and_vy();
-                } else if low(low_byte) == 3 {
-                    self.pc = self.vx_xor_vy();
-                } else if low(low_byte) == 4 {
-                    self.pc = self.add_vx_and_vy();
-                } else if low(low_byte) == 5 {
-                    self.pc = self.sub_vx_and_vy();
-                } else if low(low_byte) == 6 {
-                    self.pc = self.vx_shr();
-                } else if low(low_byte) == 0xE {
-                    self.pc = self.vx_shl();
-                } else {
-                    return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
+                match low(low_byte) {
+                    0 => {
+                        self.pc = self.set_vx_to_vy();
+                    }
+                    1 => {
+                        todo!();
+                        // self.pc = self.vx_or_vy();
+                    }
+                    2 => {
+                        self.pc = self.vx_and_vy();
+                    }
+                    3 => {
+                        self.pc = self.vx_xor_vy();
+                    }
+                    4 => {
+                        self.pc = self.add_vx_and_vy();
+                    }
+                    5 => {
+                        self.pc = self.sub_vx_and_vy();
+                    }
+                    6 => {
+                        self.pc = self.vx_shr();
+                    }
+                    7 => {
+                        todo!();
+                        // self.pc = self.vx_subn_vy();
+                    }
+                    0xE => {
+                        self.pc = self.vx_shl();
+                    }
+                    _ => {
+                        return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
+                    }
                 }
             }
             0x9 => {
@@ -136,22 +154,67 @@ impl Chip8 {
             0xA => {
                 self.pc = self.load_i();
             }
+            0xB => {
+                todo!();
+                // self.pc = self.jump_plus_v0();
+            }
             0xC => {
                 self.pc = self.rand();
             }
             0xD => {
                 self.pc = self.draw();
             }
+            0xE => {
+                match low_byte {
+                    0x9E => {
+                        todo!();
+                        // self.skip_pressed();
+                    }
+                    0xA1 => {
+                        todo!();
+                        // self.skip_not_pressed();
+                    }
+                    _ => return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte)),
+                };
+            }
             0xF => {
-                // TODO: Rest of the 0xF space instructions
-                if *low_byte == 0x1E {
-                    self.pc = self.add();
-                } else if *low_byte == 0x55 {
-                    self.pc = self.store_array();
-                } else if *low_byte == 0x65 {
-                    self.pc = self.load_array();
-                } else {
-                    return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
+                match low_byte {
+                    0x07 => {
+                        todo!();
+                        // self.pc = self.set_vx_delay_timer();
+                    }
+                    0x0A => {
+                        todo!();
+                        // self.pc = self.wait_and_load_key_press();
+                    }
+                    0x15 => {
+                        todo!();
+                        // self.pc = self.set_delay_timer();
+                    }
+                    0x18 => {
+                        todo!();
+                        // self.pc = self.set_sound_timer();
+                    }
+                    0x1E => {
+                        self.pc = self.add();
+                    }
+                    0x29 => {
+                        todo!();
+                        // self.pc = self.set_i_to_sprite_vx();
+                    }
+                    0x33 => {
+                        todo!();
+                        // self.pc = self.store_bcd();
+                    }
+                    0x55 => {
+                        self.pc = self.store_array();
+                    }
+                    0x65 => {
+                        self.pc = self.load_array();
+                    }
+                    _ => {
+                        return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
+                    }
                 }
             }
             _ => return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte)),
