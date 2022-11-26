@@ -528,10 +528,11 @@ impl Chip8 {
 
     // Annn - LD I, addr
     fn load_i(&mut self) -> usize {
-        self.disassemble(format!("LD I, {}", self.addr()).as_str());
+        let addr = self.addr();
+        self.disassemble(format!("LD I, {:x}", addr).as_str());
 
         // The value of register I is set to nnn
-        self.registers.i = self.addr();
+        self.registers.i = addr;
 
         self.pc + 2
     }
