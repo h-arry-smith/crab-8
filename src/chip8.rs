@@ -151,8 +151,7 @@ impl Chip8 {
                 self.pc = self.load_i();
             }
             0xB => {
-                todo!();
-                // self.pc = self.jump_plus_v0();
+                self.pc = self.jump_plus_v0();
             }
             0xC => {
                 self.pc = self.rand();
@@ -535,6 +534,18 @@ impl Chip8 {
         self.registers.i = addr;
 
         self.pc + 2
+    }
+
+    // Bnnn - JP V0, addr
+    fn jump_plus_v0(&mut self) -> usize {
+        let addr = self.addr();
+        self.disassemble(format!("JP V0, {:x}", addr).as_str());
+
+        // The program counter is set to nnn plus the value of V0.
+
+        // As we always return the new program counter, we return the sum of
+        // addr and v0
+        addr as usize + self.registers.v_0 as usize
     }
 
     // Cxkk - RND Vx, byte
