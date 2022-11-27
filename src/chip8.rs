@@ -250,6 +250,10 @@ impl Chip8 {
         }
     }
 
+    pub fn sound_on(&self) -> bool {
+        self.registers.st > 0
+    }
+
     // 00E0 - CLS
     fn clear(&mut self) -> usize {
         self.disassemble("CLS");

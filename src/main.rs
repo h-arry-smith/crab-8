@@ -1,7 +1,8 @@
-use sdl2::{event::Event, keyboard::Keycode};
+use sdl2::{audio::AudioSpecDesired, event::Event, keyboard::Keycode};
 use std::{env, process, thread, time::Duration};
 
 use flake_8::{
+    audio::SquareWave,
     chip8::{Chip8, Error},
     render::Renderer,
 };
@@ -36,6 +37,21 @@ fn main() {
 
     let mut renderer = Renderer::new(64, 32, 16);
 
+    let desired_audio_spec = AudioSpecDesired {
+        freq: Some(44100),
+        channels: Some(1),
+        samples: None,
+    };
+
+    let device = renderer
+        .audio_subsystem
+        .open_playback(None, &desired_audio_spec, |spec| SquareWave {
+            phase_inc: 440.0 / spec.freq as f32,
+            phase: 0.0,
+            volume: 0.25,
+        })
+        .unwrap();
+
     'running: loop {
         match cpu.step() {
             Ok(_) => {}
@@ -58,6 +74,12 @@ fn main() {
                 }
                 _ => {}
             }
+        }
+
+        if cpu.sound_on() {
+            device.resume();
+        } else {
+            device.pause();
         }
 
         renderer.render(&cpu.display);

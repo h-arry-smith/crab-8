@@ -1,4 +1,4 @@
-use sdl2::{pixels::Color, rect::Rect, render::WindowCanvas, EventPump};
+use sdl2::{pixels::Color, rect::Rect, render::WindowCanvas, AudioSubsystem, EventPump};
 
 use crate::display::Display;
 
@@ -7,6 +7,7 @@ pub struct Renderer {
     pub event_pump: EventPump,
     width: u32,
     cell_size: u32,
+    pub audio_subsystem: AudioSubsystem,
 }
 
 impl Renderer {
@@ -25,11 +26,14 @@ impl Renderer {
         canvas.clear();
         let event_pump = sdl_context.event_pump().unwrap();
 
+        let audio_subsystem = sdl_context.audio().unwrap();
+
         Self {
             canvas,
             event_pump,
             width,
             cell_size,
+            audio_subsystem,
         }
     }
 
