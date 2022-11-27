@@ -175,8 +175,7 @@ impl Chip8 {
             0xF => {
                 match low_byte {
                     0x07 => {
-                        todo!();
-                        // self.pc = self.set_vx_delay_timer();
+                        self.pc = self.set_vx_delay_timer();
                     }
                     0x0A => {
                         todo!();
@@ -632,6 +631,17 @@ impl Chip8 {
         self.pc + 2
     }
 
+    // Fx07 - LD Vx, DT
+    fn set_vx_delay_timer(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("LD V{:x}, DT", x).as_str());
+
+        // The value of DT is placed into Vx.
+        self.registers.put(x, self.registers.dt);
+
+        self.pc + 2
+    }
+
     // Fx65 - LD Vx, [I]
     fn load_array(&mut self) -> usize {
         let x = low(self.high_byte());
@@ -773,6 +783,18 @@ pub struct Registers {
     // There is also a 16-bit register called I. This register is generally
     // used to store memory addresses
     i: u16,
+
+    // Chip-8 provides 2 timers, a delay timer and a sound timer.
+    // The delay timer is active whenever the delay timer register (DT) is non-
+    // zero. This timer does nothing more than subtract 1 from the value of DT
+    // at a rate of 60Hz. When DT reaches 0, it deactivates.
+    dt: u8,
+
+    // The sound timer is active whenever the sound timer register (ST) is non-
+    // zero. This timer also decrements at a rate of 60Hz, however, as long as
+    // ST's value is greater than zero, the Chip-8 buzzer will sound. When ST
+    // reaches zero, the sound timer deactivates.
+    st: u8,
 }
 
 impl Registers {
@@ -795,6 +817,8 @@ impl Registers {
             v_e: 0,
             v_f: 0,
             i: 0,
+            dt: 0,
+            st: 0,
         }
     }
 
