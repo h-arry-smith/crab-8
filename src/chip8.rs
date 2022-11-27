@@ -209,8 +209,7 @@ impl Chip8 {
                         self.pc = self.set_i_to_sprite_vx();
                     }
                     0x33 => {
-                        todo!();
-                        // self.pc = self.store_bcd();
+                        self.pc = self.store_bcd();
                     }
                     0x55 => {
                         self.pc = self.store_array();
@@ -633,6 +632,17 @@ impl Chip8 {
         self.pc + 2
     }
 
+    // Fx07 - LD Vx, DT
+    fn set_vx_delay_timer(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("LD V{:x}, DT", x).as_str());
+
+        // The value of DT is placed into Vx.
+        self.registers.put(x, self.registers.dt);
+
+        self.pc + 2
+    }
+
     // Fx15 - LD DT, Vx
     fn set_delay_timer(&mut self) -> usize {
         let x = low(self.high_byte());
@@ -691,7 +701,28 @@ impl Chip8 {
         self.pc + 2
     }
 
-    // Fx65 - LD [I], Vx
+    // Fx33 - LD B, Vx
+    fn store_bcd(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("LD B, V{:x}", x).as_str());
+
+        // The interpreter takes the decimal value of Vx, and places the
+        let vx = self.registers.get(x);
+
+        // hundreds digit in memory at location in I,
+        let i = self.registers.i as usize;
+        self.ram[i] = vx % 100;
+
+        // the tens digit at location I+1,
+        self.ram[i + 1] = vx / 10 % 10;
+
+        // and the ones digit at location I+2.
+        self.ram[i + 2] = vx % 10;
+
+        self.pc + 2
+    }
+
+    // Fx55 - LD [I], Vx
     fn store_array(&mut self) -> usize {
         let x = low(self.high_byte());
         let i = self.registers.i;
@@ -703,17 +734,6 @@ impl Chip8 {
         for n in 0..=x {
             self.ram[i as usize + n as usize] = self.registers.get(n);
         }
-
-        self.pc + 2
-    }
-
-    // Fx07 - LD Vx, DT
-    fn set_vx_delay_timer(&mut self) -> usize {
-        let x = low(self.high_byte());
-        self.disassemble(format!("LD V{:x}, DT", x).as_str());
-
-        // The value of DT is placed into Vx.
-        self.registers.put(x, self.registers.dt);
 
         self.pc + 2
     }
