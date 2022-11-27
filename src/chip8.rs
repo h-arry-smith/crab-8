@@ -200,8 +200,7 @@ impl Chip8 {
                         self.pc = self.set_delay_timer();
                     }
                     0x18 => {
-                        todo!();
-                        // self.pc = self.set_sound_timer();
+                        self.pc = self.set_sound_timer();
                     }
                     0x1E => {
                         self.pc = self.add();
@@ -658,6 +657,17 @@ impl Chip8 {
 
         // DT is set equal to the value of Vx.
         self.registers.dt = self.registers.get(x);
+
+        self.pc + 2
+    }
+
+    // Fx18 - LD ST, Vx
+    fn set_sound_timer(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("SD DT, V{:x}", x).as_str());
+
+        // ST is set equal to the value of Vx.
+        self.registers.st = self.registers.get(x);
 
         self.pc + 2
     }
