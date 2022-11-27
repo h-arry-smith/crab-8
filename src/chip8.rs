@@ -206,8 +206,7 @@ impl Chip8 {
                         self.pc = self.add();
                     }
                     0x29 => {
-                        todo!();
-                        // self.pc = self.set_i_to_sprite_vx();
+                        self.pc = self.set_i_to_sprite_vx();
                     }
                     0x33 => {
                         todo!();
@@ -634,22 +633,6 @@ impl Chip8 {
         self.pc + 2
     }
 
-    // Fx1E - ADD I, Vx
-    fn add(&mut self) -> usize {
-        let x = low(self.high_byte());
-        self.disassemble(format!("ADD I, V{:x}", x).as_str());
-
-        // The values of I and Vx are added, and the results are stored in I.
-        let (result, _) = self
-            .registers
-            .i
-            .overflowing_add(self.registers.get(x) as u16);
-
-        self.registers.i = result;
-
-        self.pc + 2
-    }
-
     // Fx15 - LD DT, Vx
     fn set_delay_timer(&mut self) -> usize {
         let x = low(self.high_byte());
@@ -668,6 +651,42 @@ impl Chip8 {
 
         // ST is set equal to the value of Vx.
         self.registers.st = self.registers.get(x);
+
+        self.pc + 2
+    }
+
+    // Fx1E - ADD I, Vx
+    fn add(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("ADD I, V{:x}", x).as_str());
+
+        // The values of I and Vx are added, and the results are stored in I.
+        let (result, _) = self
+            .registers
+            .i
+            .overflowing_add(self.registers.get(x) as u16);
+
+        self.registers.i = result;
+
+        self.pc + 2
+    }
+
+    // Fx29 - LD F, Vx
+    fn set_i_to_sprite_vx(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("LD F, V{:x}", x).as_str());
+
+        // The value of I is set to the location for the hexadecimal sprite
+        // corresponding to the value of Vx.
+        let vx = self.registers.get(x);
+
+        // Sprite characters stored every 5 bytes starting at 0
+        // NOTE: Specification is unclear on what to do when this value is greater
+        //       than 0xF, for now we will do nothing
+
+        if vx <= 0xF {
+            self.registers.i = vx as u16 * 5;
+        }
 
         self.pc + 2
     }
