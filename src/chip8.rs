@@ -927,7 +927,9 @@ impl Registers {
         print!("v_e: {:02X} ", self.v_e);
         print!("v_f: {:02X} ", self.v_f);
         println!();
-        println!("i: {:04X}", self.i)
+        println!("i: {:04X}", self.i);
+        println!("dt: {:02X} {:?}", self.dt, self.dt > 0);
+        println!("st: {:02X} {:?}", self.st, self.st > 0);
     }
 }
 
