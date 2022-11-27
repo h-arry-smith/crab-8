@@ -1,7 +1,7 @@
 // Reference: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 
 use rand::Rng;
-use std::fs;
+use std::{fs, time::SystemTime};
 
 use crate::display::{Collision, Display, Sprite};
 
@@ -13,6 +13,12 @@ use crate::display::{Collision, Display, Sprite};
 // computer.
 const NORMAL_START_INDEX: usize = 512;
 // const ETI_660_START_INDEX: usize = 1526;
+
+// 2.2 - Regissters
+// Chip-8 also has two special purpose 8-bit registers, for the delay and sound
+// timers. When these registers are non-zero, they are automatically decremented
+// at a rate of 60Hz.
+const CLOCK_CYCLE: f64 = 1.0 / 60.0;
 
 pub struct Chip8 {
     // 2.1 - Memory
@@ -44,6 +50,8 @@ pub struct Chip8 {
     pub display: Display,
 
     debug_output: bool,
+
+    start_time: Option<SystemTime>,
 }
 
 impl Chip8 {
@@ -56,6 +64,7 @@ impl Chip8 {
             stack: [0; 16],
             display: Display::new(),
             debug_output: false,
+            start_time: None,
         };
 
         new.load_hexadecimal_display_bytes();
@@ -78,6 +87,12 @@ impl Chip8 {
     }
 
     pub fn step(&mut self) -> Chip8Result {
+        if self.start_time.is_none() {
+            self.start_time = Some(SystemTime::now());
+        }
+
+        self.run_timers();
+
         let high_byte = self.high_byte();
         let low_byte = self.low_byte();
 
@@ -215,6 +230,24 @@ impl Chip8 {
         }
 
         Ok(())
+    }
+
+    fn run_timers(&mut self) {
+        match self.start_time {
+            Some(ref time) => {
+                if !(time.elapsed().unwrap().as_secs_f64() % CLOCK_CYCLE == 0.0) {
+                    return;
+                }
+
+                if self.registers.dt > 0 {
+                    self.registers.dt -= 1;
+                }
+                if self.registers.st > 0 {
+                    self.registers.st -= 1;
+                }
+            }
+            None => {}
+        }
     }
 
     // 00E0 - CLS
