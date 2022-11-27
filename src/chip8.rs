@@ -197,8 +197,7 @@ impl Chip8 {
                         // self.pc = self.wait_and_load_key_press();
                     }
                     0x15 => {
-                        todo!();
-                        // self.pc = self.set_delay_timer();
+                        self.pc = self.set_delay_timer();
                     }
                     0x18 => {
                         todo!();
@@ -235,7 +234,7 @@ impl Chip8 {
     fn run_timers(&mut self) {
         match self.start_time {
             Some(ref time) => {
-                if !(time.elapsed().unwrap().as_secs_f64() % CLOCK_CYCLE == 0.0) {
+                if !(time.elapsed().unwrap().as_secs_f64() % CLOCK_CYCLE <= 0.01) {
                     return;
                 }
 
@@ -648,6 +647,17 @@ impl Chip8 {
             .overflowing_add(self.registers.get(x) as u16);
 
         self.registers.i = result;
+
+        self.pc + 2
+    }
+
+    // Fx15 - LD DT, Vx
+    fn set_delay_timer(&mut self) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("LD DT, V{:x}", x).as_str());
+
+        // DT is set equal to the value of Vx.
+        self.registers.dt = self.registers.get(x);
 
         self.pc + 2
     }
