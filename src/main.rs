@@ -4,6 +4,7 @@ use std::{env, process, thread, time::Duration};
 use flake_8::{
     audio::SquareWave,
     chip8::{Chip8, Error},
+    keymap::KeyMap,
     render::Renderer,
 };
 
@@ -52,6 +53,8 @@ fn main() {
         })
         .unwrap();
 
+    let mut keymap = KeyMap::new();
+
     'running: loop {
         match cpu.step() {
             Ok(_) => {}
@@ -71,6 +74,16 @@ fn main() {
                     ..
                 } => {
                     break 'running;
+                }
+                Event::KeyDown {
+                    keycode: Some(key), ..
+                } => {
+                    keymap.add_key(key);
+                }
+                Event::KeyUp {
+                    keycode: Some(key), ..
+                } => {
+                    keymap.remove_key(key);
                 }
                 _ => {}
             }
