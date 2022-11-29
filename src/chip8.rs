@@ -179,8 +179,7 @@ impl Chip8 {
                         self.skip_pressed(keymap);
                     }
                     0xA1 => {
-                        todo!();
-                        // self.skip_not_pressed();
+                        self.skip_not_pressed(keymap);
                     }
                     _ => return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte)),
                 };
@@ -639,6 +638,21 @@ impl Chip8 {
         let vx = self.registers.get(x);
 
         if keymap.is_key_pressed(vx) {
+            self.pc + 4
+        } else {
+            self.pc + 2
+        }
+    }
+
+    // ExA1 - SKNP Vx
+    fn skip_not_pressed(&mut self, keymap: &KeyMap) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("SKNP V{:x}", x).as_str());
+
+        // Skip next instruction if key with the value of Vx is not pressed.
+        let vx = self.registers.get(x);
+
+        if !keymap.is_key_pressed(vx) {
             self.pc + 4
         } else {
             self.pc + 2
