@@ -47,6 +47,10 @@ impl KeyMap {
         };
     }
 
+    pub fn is_key_pressed(&self, key: u8) -> bool {
+        self.active.contains(&key)
+    }
+
     fn to_chip8_key(keycode: Keycode) -> Option<u8> {
         match keycode {
             Keycode::Num1 => Some(0x1),

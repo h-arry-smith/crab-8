@@ -4,6 +4,7 @@ use rand::Rng;
 use std::{fs, time::SystemTime};
 
 use crate::display::{Collision, Display, Sprite};
+use crate::keymap::KeyMap;
 
 // 2.1 - Memory
 // Most Chip-8 programs start at location 0x200 (512), but some begin at
@@ -84,7 +85,7 @@ impl Chip8 {
         eprintln!("bytes loaded: {}", bytes.len());
     }
 
-    pub fn step(&mut self) -> Chip8Result {
+    pub fn step(&mut self, keymap: &KeyMap) -> Chip8Result {
         if self.start_time.is_none() {
             self.start_time = Some(SystemTime::now());
         }
@@ -175,8 +176,7 @@ impl Chip8 {
             0xE => {
                 match low_byte {
                     0x9E => {
-                        todo!();
-                        // self.skip_pressed();
+                        self.skip_pressed(keymap);
                     }
                     0xA1 => {
                         todo!();
@@ -628,6 +628,21 @@ impl Chip8 {
         }
 
         self.pc + 2
+    }
+
+    // Ex9E - SKP Vx
+    fn skip_pressed(&mut self, keymap: &KeyMap) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("SKP V{:x}", x).as_str());
+
+        // Skip next instruction if key with the value of Vx is pressed.
+        let vx = self.registers.get(x);
+
+        if keymap.is_key_pressed(vx) {
+            self.pc + 4
+        } else {
+            self.pc + 2
+        }
     }
 
     // Fx07 - LD Vx, DT

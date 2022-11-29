@@ -56,16 +56,6 @@ fn main() {
     let mut keymap = KeyMap::new();
 
     'running: loop {
-        match cpu.step() {
-            Ok(_) => {}
-            Err(err) => match err {
-                Error::UnrecognisedInstruction(high, low) => {
-                    eprintln!("Unrecognised Instruction: {:02X} {:02X}", high, low);
-                    break 'running;
-                }
-            },
-        }
-
         for event in renderer.event_pump.poll_iter() {
             match event {
                 Event::Quit { .. }
@@ -87,6 +77,16 @@ fn main() {
                 }
                 _ => {}
             }
+        }
+
+        match cpu.step(&keymap) {
+            Ok(_) => {}
+            Err(err) => match err {
+                Error::UnrecognisedInstruction(high, low) => {
+                    eprintln!("Unrecognised Instruction: {:02X} {:02X}", high, low);
+                    break 'running;
+                }
+            },
         }
 
         if cpu.sound_on() {
