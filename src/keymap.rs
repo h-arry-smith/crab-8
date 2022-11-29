@@ -41,13 +41,8 @@ impl KeyMap {
         };
     }
 
-    pub fn remove_key(&mut self, keycode: Keycode) {
-        match Self::to_chip8_key(keycode) {
-            Some(key) => {
-                self.active.remove(&key);
-            }
-            None => {}
-        };
+    pub fn clear(&mut self) {
+        self.active.clear();
     }
 
     pub fn is_key_pressed(&self, key: u8) -> bool {

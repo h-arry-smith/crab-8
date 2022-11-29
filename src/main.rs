@@ -70,11 +70,6 @@ fn main() {
                 } => {
                     keymap.add_key(key);
                 }
-                Event::KeyUp {
-                    keycode: Some(key), ..
-                } => {
-                    keymap.remove_key(key);
-                }
                 _ => {}
             }
         }
@@ -96,6 +91,8 @@ fn main() {
         }
 
         renderer.render(&cpu.display);
+
+        keymap.clear();
 
         thread::sleep(Duration::new(0, 1_000_000_000u32 / 120));
     }
