@@ -184,41 +184,38 @@ impl Chip8 {
                     _ => return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte)),
                 };
             }
-            0xF => {
-                match low_byte {
-                    0x07 => {
-                        self.pc = self.set_vx_delay_timer();
-                    }
-                    0x0A => {
-                        todo!();
-                        // self.pc = self.wait_and_load_key_press();
-                    }
-                    0x15 => {
-                        self.pc = self.set_delay_timer();
-                    }
-                    0x18 => {
-                        self.pc = self.set_sound_timer();
-                    }
-                    0x1E => {
-                        self.pc = self.add();
-                    }
-                    0x29 => {
-                        self.pc = self.set_i_to_sprite_vx();
-                    }
-                    0x33 => {
-                        self.pc = self.store_bcd();
-                    }
-                    0x55 => {
-                        self.pc = self.store_array();
-                    }
-                    0x65 => {
-                        self.pc = self.load_array();
-                    }
-                    _ => {
-                        return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
-                    }
+            0xF => match low_byte {
+                0x07 => {
+                    self.pc = self.set_vx_delay_timer();
                 }
-            }
+                0x0A => {
+                    self.pc = self.wait_and_load_key_press(keymap);
+                }
+                0x15 => {
+                    self.pc = self.set_delay_timer();
+                }
+                0x18 => {
+                    self.pc = self.set_sound_timer();
+                }
+                0x1E => {
+                    self.pc = self.add();
+                }
+                0x29 => {
+                    self.pc = self.set_i_to_sprite_vx();
+                }
+                0x33 => {
+                    self.pc = self.store_bcd();
+                }
+                0x55 => {
+                    self.pc = self.store_array();
+                }
+                0x65 => {
+                    self.pc = self.load_array();
+                }
+                _ => {
+                    return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
+                }
+            },
             _ => return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte)),
         }
 
@@ -668,6 +665,27 @@ impl Chip8 {
         self.registers.put(x, self.registers.dt);
 
         self.pc + 2
+    }
+
+    // Fx0A - LD Vx, K
+    fn wait_and_load_key_press(&mut self, keymap: &KeyMap) -> usize {
+        let x = low(self.high_byte());
+        self.disassemble(format!("LD V{:x}, K", x).as_str());
+
+        match keymap.most_recent_key() {
+            Some(key) => {
+                //then the value of that key is stored in Vx.
+                self.registers.put(x, *key);
+                self.pc + 2
+            }
+            None => {
+                // All execution stops until a key is pressed,
+                // Rather than setting some state varaible on the cpu, we can
+                // leave the program counter where it is and return to the
+                // execution and render loop.
+                self.pc
+            }
+        }
     }
 
     // Fx15 - LD DT, Vx

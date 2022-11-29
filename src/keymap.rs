@@ -20,12 +20,14 @@ use sdl2::keyboard::Keycode;
 #[derive(Debug)]
 pub struct KeyMap {
     active: HashSet<u8>,
+    last_key: Option<u8>,
 }
 
 impl KeyMap {
     pub fn new() -> Self {
         Self {
             active: HashSet::new(),
+            last_key: None,
         }
     }
 
@@ -33,6 +35,7 @@ impl KeyMap {
         match Self::to_chip8_key(keycode) {
             Some(key) => {
                 self.active.insert(key);
+                self.last_key = Some(key);
             }
             None => {}
         };
@@ -49,6 +52,13 @@ impl KeyMap {
 
     pub fn is_key_pressed(&self, key: u8) -> bool {
         self.active.contains(&key)
+    }
+
+    pub fn most_recent_key(&self) -> Option<&u8> {
+        match self.last_key {
+            Some(key) => self.active.get(&key),
+            None => None,
+        }
     }
 
     fn to_chip8_key(keycode: Keycode) -> Option<u8> {
