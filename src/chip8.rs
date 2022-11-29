@@ -756,7 +756,7 @@ impl Chip8 {
 
         // hundreds digit in memory at location in I,
         let i = self.registers.i as usize;
-        self.ram[i] = vx % 100;
+        self.ram[i] = vx / 100;
 
         // the tens digit at location I+1,
         self.ram[i + 1] = vx / 10 % 10;
