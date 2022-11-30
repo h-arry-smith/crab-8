@@ -102,7 +102,8 @@ impl Chip8 {
                 } else if *low_byte == 0xEE {
                     self.pc = self.ret();
                 } else {
-                    return Err(Error::UnrecognisedInstruction(*high_byte, *low_byte));
+                    // 0nnn SYS opcodes are ignored on modern systems
+                    self.pc += 2
                 }
             }
             0x1 => {
