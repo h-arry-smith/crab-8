@@ -83,7 +83,6 @@ impl Chip8 {
             self.ram[start_index + index] = *byte;
         }
 
-        // TODO: Set PC start based on CLI flag for start address
         self.pc = start_index;
 
         eprintln!("bytes loaded: {}", bytes.len());
