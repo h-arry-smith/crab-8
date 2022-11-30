@@ -1,40 +1,22 @@
+use clap::Parser;
 use sdl2::{audio::AudioSpecDesired, event::Event, keyboard::Keycode};
-use std::{env, process, thread, time::Duration};
+use std::{thread, time::Duration};
 
 use flake_8::{
     audio::SquareWave,
     chip8::{Chip8, Error},
+    cli::Cli,
     keymap::KeyMap,
     render::Renderer,
 };
 
-// TODO: Replace CLI argument parsing with a better library before releasing as
-//       any public project.
-
 fn main() {
     let mut cpu = Chip8::new();
 
-    let args: Vec<String> = env::args().collect();
+    let args = Cli::parse();
 
-    if args.len() < 2 {
-        eprintln!("Usage: flake-8 [path]");
-        process::exit(1);
-    }
-
-    let mut dump = false;
-    match args.get(2) {
-        Some(flag) => {
-            if flag == "-d" || flag == "--dump" {
-                dump = true;
-            }
-        }
-        None => {}
-    }
-
-    let path = args.get(1).expect("A file path must be provided.");
-
-    cpu.load_rom(path);
-    cpu.set_debug_output(dump);
+    cpu.load_rom(&args.path);
+    cpu.set_debug_output(args.debug);
 
     let mut renderer = Renderer::new(64, 32, 16);
 
@@ -97,7 +79,7 @@ fn main() {
         thread::sleep(Duration::new(0, 1_000_000_000u32 / 120));
     }
 
-    if dump {
+    if args.debug {
         cpu.dump_to_stdout();
     }
 }
