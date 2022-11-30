@@ -11,7 +11,7 @@ use crate::keymap::KeyMap;
 // 0x600 (1536). Programs beginning at 0x600 are intended for the ETI 660
 // computer.
 const NORMAL_START_INDEX: usize = 512;
-// const ETI_660_START_INDEX: usize = 1526;
+const ETI_660_START_INDEX: usize = 1526;
 
 // 2.2 - Regissters
 // Chip-8 also has two special purpose 8-bit registers, for the delay and sound
@@ -70,17 +70,21 @@ impl Chip8 {
         new
     }
 
-    pub fn load_rom(&mut self, path: &str) {
+    pub fn load_rom(&mut self, path: &str, eti_mode: bool) {
         let bytes = fs::read(path).expect("Could not open file.");
 
-        // TODO: Take a CLI flag for the start address to load into memory, for
-        //       now we just use the more common 0x200 start address.
+        let mut start_index = NORMAL_START_INDEX;
+
+        if eti_mode {
+            start_index = ETI_660_START_INDEX;
+        }
+
         for (index, byte) in bytes.iter().enumerate() {
-            self.ram[NORMAL_START_INDEX + index] = *byte;
+            self.ram[start_index + index] = *byte;
         }
 
         // TODO: Set PC start based on CLI flag for start address
-        self.pc = NORMAL_START_INDEX;
+        self.pc = start_index;
 
         eprintln!("bytes loaded: {}", bytes.len());
     }

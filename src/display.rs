@@ -1,8 +1,5 @@
 // Reference: http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
 
-// TODO: This implementation supports the original 64x32 pixel display but does
-//       not support other common display modes.
-
 const PIXEL_COUNT: usize = 64 * 32;
 
 // 2.4 - Display

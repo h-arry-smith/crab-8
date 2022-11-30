@@ -15,7 +15,7 @@ fn main() {
 
     let args = Cli::parse();
 
-    cpu.load_rom(&args.path);
+    cpu.load_rom(&args.path, args.eti_mode);
     cpu.set_debug_output(args.debug);
 
     let mut renderer = Renderer::new(64, 32, 16);
