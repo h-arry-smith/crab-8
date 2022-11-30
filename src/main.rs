@@ -19,6 +19,7 @@ fn main() {
     cpu.set_debug_output(args.debug);
 
     let mut renderer = Renderer::new(64, 32, 16);
+    renderer.set_colors(args.fg, args.bg);
 
     let desired_audio_spec = AudioSpecDesired {
         freq: Some(44100),

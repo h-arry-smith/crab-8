@@ -8,6 +8,8 @@ pub struct Renderer {
     width: u32,
     cell_size: u32,
     pub audio_subsystem: AudioSubsystem,
+    fg: Color,
+    bg: Color,
 }
 
 impl Renderer {
@@ -34,14 +36,16 @@ impl Renderer {
             width,
             cell_size,
             audio_subsystem,
+            fg: Color::RGB(255, 255, 255),
+            bg: Color::RGB(0, 0, 0),
         }
     }
 
     pub fn render(&mut self, display: &Display) {
-        self.canvas.set_draw_color(Color::RGB(0, 0, 0));
+        self.canvas.set_draw_color(self.bg);
         self.canvas.clear();
 
-        self.canvas.set_draw_color(Color::RGB(255, 255, 255));
+        self.canvas.set_draw_color(self.fg);
         for (i, pixel) in display.memory.iter().enumerate() {
             if !pixel {
                 continue;
@@ -61,5 +65,28 @@ impl Renderer {
         }
 
         self.canvas.present();
+    }
+
+    pub fn set_colors(&mut self, fg: Option<String>, bg: Option<String>) {
+        match fg {
+            Some(hex_string) => self.fg = Self::to_color(hex_string),
+            None => {}
+        };
+
+        match bg {
+            Some(hex_string) => self.bg = Self::to_color(hex_string),
+            None => {}
+        }
+    }
+
+    fn to_color(hex_string: String) -> Color {
+        let hex = hex_string.strip_prefix("#").unwrap();
+        let hex = u32::from_str_radix(hex, 16).unwrap();
+
+        let red = (hex >> 16) & 0xFF;
+        let green = (hex >> 8) & 0xFF;
+        let blue = hex & 0xFF;
+
+        Color::RGB(red as u8, green as u8, blue as u8)
     }
 }
