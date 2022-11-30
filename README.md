@@ -1,7 +1,33 @@
 # Flake-8
-A Chip-8 emulator written in rust.
+A fully featured Chip-8 Emulator written in Rust.
 
-Under active development, currently not even close to functional.
+This project was written as a learning & development project in rust, and as such 
+the code may not be the most idiomatic rust. PR's with improvements welcome :).
+
+All opcodes, sound, delay and keyboard are implemented.
+
+## Usage
+
+```
+Usage: flake-8 [OPTIONS] <PATH>
+
+Arguments:
+  <PATH>  Path to the chip-8 rom that you want to run
+
+Options:
+  -d, --debug    Display debug output when running a chip-8 rom
+  -f, --fg <FG>  Set the color in hex (e.g #FF0000) for pixels that are on
+  -b, --bg <BG>  Set the color in hex (e.g #00FF00) for pixels that are off
+  -h, --help     Print help information
+  -V, --version  Print version information
+```
+
+## Keyboard
+
+|1|2|3|C|    |1|2|3|4|
+|4|5|6|D|    |Q|W|E|R|
+|7|8|9|E|    |A|S|D|F|
+|A|0|B|F|    |Z|X|C|V|
 
 ## Reference Material
 - http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
