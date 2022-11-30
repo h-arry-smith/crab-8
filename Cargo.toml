@@ -1,5 +1,5 @@
 [package]
-name = "flake-8"
+name = "crab-8"
 version = "0.1.0"
 edition = "2021"
 

@@ -1,4 +1,4 @@
-# Flake-8
+# Crab-8
 A fully featured Chip-8 Emulator written in Rust.
 
 This project was written as a learning & development project in rust, and as such 
@@ -9,7 +9,7 @@ All opcodes, sound, delay and keyboard are implemented.
 ## Usage
 
 ```
-Usage: flake-8 [OPTIONS] <PATH>
+Usage: crab-8 [OPTIONS] <PATH>
 
 Arguments:
   <PATH>  Path to the chip-8 rom that you want to run
