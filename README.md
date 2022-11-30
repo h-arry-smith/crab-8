@@ -4,7 +4,7 @@ A fully featured Chip-8 Emulator written in Rust.
 This project was written as a learning & development project in rust, and as such 
 the code may not be the most idiomatic rust. PR's with improvements welcome :).
 
-All opcodes, sound, delay and keyboard are implemented. Passes all tests in the test rom from the resources.
+All opcodes, sound, delay and keyboard are implemented.
 
 ## Usage
 
@@ -15,11 +15,12 @@ Arguments:
   <PATH>  Path to the chip-8 rom that you want to run
 
 Options:
-  -d, --debug    Display debug output when running a chip-8 rom
-  -f, --fg <FG>  Set the color in hex (e.g #FF0000) for pixels that are on
-  -b, --bg <BG>  Set the color in hex (e.g #00FF00) for pixels that are off
-  -h, --help     Print help information
-  -V, --version  Print version information
+  -d, --debug     Display debug output when running a chip-8 rom
+  -f, --fg <FG>   Set the color in hex (e.g #FF0000) for pixels that are on
+  -b, --bg <BG>   Set the color in hex (e.g #00FF00) for pixels that are off
+  -e, --eti-mode  Start the emulator in ETI 660 Mode
+  -h, --help      Print help information
+  -V, --version   Print version information
 ```
 
 ## Keyboard
