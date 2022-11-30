@@ -4,7 +4,7 @@ A fully featured Chip-8 Emulator written in Rust.
 This project was written as a learning & development project in rust, and as such 
 the code may not be the most idiomatic rust. PR's with improvements welcome :).
 
-All opcodes, sound, delay and keyboard are implemented.
+All opcodes, sound, delay and keyboard are implemented. Passes all tests in the test rom from the resources.
 
 ## Usage
 
@@ -23,11 +23,21 @@ Options:
 ```
 
 ## Keyboard
+*Original*
 
-|1|2|3|C|    |1|2|3|4|
-|4|5|6|D|    |Q|W|E|R|
-|7|8|9|E|    |A|S|D|F|
-|A|0|B|F|    |Z|X|C|V|
+|1|2|3|C|    
+|-|-|-|-|
+|4|5|6|D|    
+|7|8|9|E|    
+|A|0|B|F|   
+
+*Keyboard Mapping*
+
+|1|2|3|4|
+|-|-|-|-|
+|Q|W|E|R|
+|A|S|D|F|
+|Z|X|C|V|
 
 ## Reference Material
 - http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
